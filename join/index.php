@@ -31,6 +31,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $error['password'] = 'length';
   }
 
+  //画像のチェック
+  $image = $_FILES['image'];
+  if ($image['name'] !== '' && $image['error'] === 0) {
+    //mime_content_typeの代わりに使う
+    $finfo = new finfo();
+    $mime = $finfo->file($image['tmp_name'], FILEINFO_MIME_TYPE);
+    if ($mime !== 'image/png' && $mime !== 'image/jpeg') {
+      $error['image'] = 'type';
+    }
+  }
+
+  if (empty($error)) {
+    // エラーでなければ今までの情報を$_SESSION['form']に格納する
+    $_SESSION['form'] = $form;
+
+    // 画像のアップロード
+    if ($image['name'] !== '') {
+      $filename = date('YmdHis') . '_' . $image['name'];
+      // うまくいかなければdieで落とす
+      if (!move_uploaded_file($image['tmp_name'], '../member_picture/' . $filename)) {
+        die('ファイルのアップロードに失敗しました');
+      }
+      // $_SESSIONに$filenameを記録する
+      $_SESSION['form']['image'] = $filename;
+    } else {
+      $_SESSION['form']['image'] = '';
+    }
+
+    header('Location: check.php');
+    exit();
+  }
   
 }
 

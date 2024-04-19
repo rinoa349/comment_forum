@@ -5,7 +5,7 @@ require('../library.php');
 // もし、$_SESSION['form']に値が入っていたら
 if (isset($_SESSION['form'])) {
   // $formに格納する
-  $form = $_SESSION['form']
+  $form = $_SESSION['form'];
 } else {
   // または入っていなければ(空など)トップページに戻す
   header('Location: index.php');
