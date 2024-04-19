@@ -1,0 +1,38 @@
+#wrap {
+	width: 802px;
+	margin: 0 auto;
+  background: url(images/content_sakura.png) left bottom no-repeat #ecf7fc;
+}
+
+#head {
+  text-align: center;
+}
+
+#content {
+  width: 720px;
+  margin: 0 auto;
+}
+
+.required {
+	background-color: #BB1850;
+	color: #fff;
+	font-size: 90%;
+	padding: 2px;
+	margin-left: 10px;
+}
+
+p {
+	line-height: 1.2em;
+	margin-bottom: 0.5em;
+}
+
+dt {
+	border-left: 3px solid rgb(59, 112, 130);
+	padding-left: 5px;
+	margin-bottom: 5px;
+}
+
+.error {
+	font-size: 90%;
+	color: #BB1850;
+}
