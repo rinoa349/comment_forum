@@ -2,17 +2,18 @@
 session_start();
 require('../library.php');
 
-//if (isset($_GET['action']) && $_GET['action'] === 'rewrite' && isset($_SESSION['form'])) {
-  //$form = $_SESSION['form'];
-//} else {
+if (isset($_GET['action']) && $_GET['action'] === 'rewrite' && isset($_SESSION['form'])) {
+  $form = $_SESSION['form'];
+} else {
   $form = [
     'name' => '',
     'email' => '',
     'password' => '',
   ];
-//}
+}
 $error = [];
 
+/* フォームの内容チェック */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $form['name'] = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
   if ($form['name'] === '') {
@@ -22,6 +23,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   $form['email'] = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
   if ($form['email'] === '') {
     $error['email'] = 'blank';
+  } else {
+    $db = dbconnect();
+    $stmt = $db->prepare('select count(*) from members where email=?');
+    if (!$stmt) {
+      die($db->error);
+    }
+    $stmt->bind_param('s', $form['email']);
+    $success = $stmt->execute();
+    if (!$success) {
+      die($db->error);
+    }
+    $stmt->bind_result($cnt);
+    $stmt->fetch();
+
+    if ($cnt > 0) {
+      $error['email'] = 'duplicate';
+    }
   }
 
   $form['password'] = filter_input(INPUT_POST, 'password', FILTER_SANITIZE_STRING);
@@ -90,22 +108,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       <dl>
         <dt>ニックネーム<span class="required">必須</span></dt>
         <dd>
-          <input type="text" name="name" size="35" maxlength="255" value=""/>
+          <input type="text" name="name" size="35" maxlength="255" value="<?php echo h($form['name']); ?>"/>
           <?php if (isset($error['name']) && $error['name'] === 'blank') : ?>
             <p class="error">* ニックネームが記入されていません</p>
           <?php endif; ?>
         </dd>
         <dt>メールアドレス<span class="required">必須</span></dt>
         <dd>
-          <input type="text" name="email" size="35" maxlength="255" value=""/>
+          <input type="text" name="email" size="35" maxlength="255" value="<?php echo h($form['email']); ?>"/>
           <?php if (isset($error['email']) && $error['email'] === 'blank') : ?>
             <p class="error">* メールアドレスが記入されていません</p>
           <?php endif; ?>
-          <p class="error">* 指定されたメールアドレスはすでに登録されています</p>
+          <?php if(isset($error['email']) && $error['email'] === 'duplicate') : ?>
+            <p class="error">* 指定されたメールアドレスはすでに登録されています</p>
+          <?php endif; ?>
         </dd>
         <dt>パスワード<span class="required">必須</span></dt>
         <dd>
-          <input type="password" name="password" size="10" maxlength="20" value=""/>
+          <input type="password" name="password" size="10" maxlength="20" value="<?php echo h($form['password']); ?>"/>
           <?php if (isset($error['password']) && $error['password'] === 'blank') : ?>
             <p class="error">* パスワードが入力されていません</p>
           <?php endif; ?>
@@ -115,9 +135,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </dd>
         <dt>画像/ファイルのアップロード</dt>
         <dd>
-          <input type="file" name="image" size="35" value=""/>
-          <p class="error">* 写真などは「.png」または「.jpg」の画像を指定してください</p>
-          <p class="error">* 恐れ入りますが、画像を改めて指定してください</p>
+          <input type="file" name="image" size="35" value="<?php echo h($form['image']); ?>"/>
+          <?php if(isset($error['image']) && $error['image'] === 'type') : ?>
+            <p class="error">* 写真などは「.png」または「.jpg」の画像を指定してください</p>
+            <p class="error">* 恐れ入りますが、画像を改めて指定してください</p>
+          <?php endif; ?>
         </dd>
       </dl>
       <div><input type="submit" value="入力内容を確認する"/></div>
